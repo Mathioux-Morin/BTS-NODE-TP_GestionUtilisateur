@@ -37,7 +37,8 @@ app.post('/api/utilisateurs', (req, res) =>
         }
         );
     });
+
     app.listen(port, () => {
     console.log(`Serveur backend opérationnel :
-    http://localhost:${port}`);
+    http://172.16.198.254:${port}`);
 });

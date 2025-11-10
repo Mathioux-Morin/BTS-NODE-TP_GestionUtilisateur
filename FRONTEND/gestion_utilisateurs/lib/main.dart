@@ -30,19 +30,69 @@ final _telephoneController = TextEditingController();
 void _addUtilisateur() async {
 if (_nomController.text.isNotEmpty &&
     _emailController.text.isNotEmpty &&
-    _telephoneController.text.isNotEmpty) {
+    _telephoneController.text.isNotEmpty &&
+    (_nomController.text.length <= 50) &&
+    (_emailController.text.length <= 50) &&
+    (_telephoneController.text.length <= 10)) {
 
-  final telephone = int.parse(_telephoneController.text);
-  await apiService.addUtilisateur(
-    _nomController.text,
-    _emailController.text,
-    telephone);
-setState(() {
-  utilisateurs = apiService.fetchUtilisateurs();
-});
-_nomController.clear();
-_emailController.clear();
-_telephoneController.clear();
+  try {
+    final telephone = int.parse(_telephoneController.text);
+    final result = await apiService.addUtilisateur(
+      _nomController.text,
+      _emailController.text,
+      telephone);
+
+    if (result['success']) {
+      setState(() {
+        utilisateurs = apiService.fetchUtilisateurs();
+      });
+      _nomController.clear();
+      _emailController.clear();
+      _telephoneController.clear();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Utilisateur ajouté avec succès'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else if (result['notification']) {
+      final messages = result['messages'] as List<dynamic>;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Erreur de validation'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: messages.map((message) => 
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('• $message'),
+                  )
+                ).toList(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Erreur: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 }
 }
 @override

@@ -22,7 +22,7 @@ Future<List<dynamic>> fetchUtilisateurs() async {
 		throw Exception('Échec du chargement des utilisateurs: ${response.statusCode}');
 	}
 }
-Future<void> addUtilisateur(String nom, String email, int telephone) async {
+Future<Map<String, dynamic>> addUtilisateur(String nom, String email, int telephone) async {
 	final url = Uri.parse('$baseUrl/utilisateurs');
 	final body = json.encode({
 		'nom': nom,
@@ -35,16 +35,17 @@ Future<void> addUtilisateur(String nom, String email, int telephone) async {
 		body: body,
 	);
 
+	final Map<String, dynamic> decoded = json.decode(response.body);
+	
 	if (response.statusCode == 200 || response.statusCode == 201) {
-		return;
+		return {'success': true, 'data': decoded};
 	} else {
-		// Try to include server message if present
-		String message = '';
-		try {
-			final decoded = json.decode(response.body);
-			if (decoded is Map && decoded.containsKey('message')) message = ': ${decoded['message']}';
-		} catch (_) {}
-		throw Exception('Échec de l\'ajout de l\'utilisateur (${response.statusCode})$message');
+		return {
+			'success': false,
+			'status': decoded['status'],
+			'messages': decoded['messages'] as List<dynamic>,
+			'notification': decoded['notification'] ?? false
+		};
 	}
 }
 
